@@ -38,7 +38,8 @@ The automated vulnerability detection tool uses the Slither package to conduct a
 The project successfully achieved its objectives, including real-time cryptocurrency price queries, historical data comparisons, a user-friendly interface, and enhanced system security. An example of the data table displayed in the front-end interface is provided to illustrate the functionality.
 
 ![real-time cryptocurrency price website](Website.png)
-website
+
+Website
 
 ![Smart Contract Vulnerability Detection Tool](DetectionTool.png)
 
