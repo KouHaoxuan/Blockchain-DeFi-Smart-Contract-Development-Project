@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Crypto Price Checking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background-color: black;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 24px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            display: flex;
+            align-items:center;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            margin-right: 10px;
+        }
+        .form-group input, .form-group select {
+            width: 30%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .table td, .table th {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center; 
+            vertical-align: middle; 
+        }
+        .table th {
+            background-color: #f0f0f0;
+        }
+        .table tr.odd-row {
+            background-color: #f7fdff;
+        }
+        .table tr.even-row {
+            background-color: #fffefe;
+        }
+        .set-button {
+            padding: 10px 20px;
+            background-color: #07ba72;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .update-button {
+            padding: 10px 20px;
+            background-color: #0e6fab;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .set-button:hover {
+            background-color: #a70306;
+        }
+        .update-button:hover {
+            background-color: #004b9c;
+        }
+
+        .negative, .positive {
+            background-color: rgb(245, 84, 84);
+            color: white;
+            padding: 3px 5px;
+            border-radius: 4px;
+            display: inline-block; 
+            width: 60%; 
+            box-sizing: border-box; 
+            text-align: center; 
+            margin: 0 auto; 
+        }
+
+        .positive {
+            background-color: rgb(26, 179, 26); 
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="header">
+        <h1>Real-time Crypto Price Checking</h1>
+    </div>
+
+    <div class="container">
+
+        <button id="updateButton" class="update-button">Update</button>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Name</th>
+                    <th>Price($)</th>
+                    <th>HistoryPrice($)</th>
+                    <th>PriceAlert(%)</th>
+                </tr>
+            </thead>
+            <tbody id="priceTable">
+                <!-- Table rows will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.3.0/dist/web3.min.js"></script>
+    <script>
+        const web3 = new Web3(window.ethereum);
+        const contractABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "AUDHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "AUDPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "BTCHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "BTCPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "CSPXHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "CSPXPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "CZKHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "CZKPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "DAIHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "DAIPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "ETHHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "ETHPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "EURHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "EURPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "FORTHHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "FORTHPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "GBPHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "GBPPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "GHOHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "GHOPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "LINKHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "LINKPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "SNXHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "SNXPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint80",
+                        "name": "roundId",
+                        "type": "uint80"
+                    }
+                ],
+                "name": "USDCHistoricalData",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "USDCPrice",
+                "outputs": [
+                    {
+                        "internalType": "int256",
+                        "name": "",
+                        "type": "int256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+
+        ]; // 智能合约ABI
+        const contractAddress = "0x7ece03f2108CFd4C1156394c6BAfd2F76D38b117"
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        let validRoundId = BigInt("18446744073709552336");
+        
+        let tableBody = document.getElementById('priceTable');
+
+        async function updateTable() {
+
+            tableBody.innerHTML = ''; // Clear the table body
+
+            const prices = await Promise.all([
+                contract.methods.BTCPrice().call(),
+                contract.methods.ETHPrice().call(),
+                contract.methods.AUDPrice().call(),
+                contract.methods.CSPXPrice().call(),
+                contract.methods.CZKPrice().call(),
+                contract.methods.DAIPrice().call(),
+                contract.methods.EURPrice().call(),
+                contract.methods.FORTHPrice().call(),
+                contract.methods.GBPPrice().call(),
+                contract.methods.GHOPrice().call(),
+                contract.methods.LINKPrice().call(),
+                contract.methods.SNXPrice().call(),
+                contract.methods.USDCPrice().call(),
+            ]);
+
+            const historicalPrices = await Promise.all([
+                contract.methods.BTCHistoricalData(validRoundId).call(),
+                contract.methods.ETHHistoricalData(validRoundId).call(),
+                contract.methods.AUDHistoricalData(validRoundId).call(),
+                contract.methods.CSPXHistoricalData(validRoundId).call(),
+                contract.methods.CZKHistoricalData(validRoundId).call(),
+                contract.methods.DAIHistoricalData(validRoundId).call(),
+                contract.methods.EURHistoricalData(validRoundId).call(),
+                contract.methods.FORTHHistoricalData(validRoundId).call(),
+                contract.methods.GBPHistoricalData(validRoundId).call(),
+                contract.methods.GHOHistoricalData(validRoundId).call(),
+                contract.methods.LINKHistoricalData(validRoundId).call(),
+                contract.methods.SNXHistoricalData(validRoundId).call(),
+                contract.methods.USDCHistoricalData(validRoundId).call(),
+            ]);
+
+            
+                
+
+            prices.forEach((price,index) => {
+                const row = document.createElement('tr');
+                const isEven = index % 2 === 0;
+                row.className = isEven ? 'even-row' : 'odd-row';
+                const tokenSymbols = [
+                    'BTC', 'ETH', 'AUD', 'CSPX', 'CZK', 'DAI', 'EUR', 'FORTH', 'GBP', 'GHO', 'LINK', 'SNX', 'USDC'
+                ];
+                const tokenImages = [
+                    'btc.png', 'eth.png', 'aud.png', 'cspx.png', 'czk.png', 'dai.png', 'eur.png', 'forth.png', 'gbp.png', 'gho.png', 'link.png', 'snx.png', 'usdc.png'
+                ];
+
+                const tokenSymbol = tokenSymbols[index];
+                const formattedPrice = price / (10 ** 8);
+                const formattedHistoricalPrice = historicalPrices[index] / (10 ** 8);
+                const priceChange = (formattedPrice - formattedHistoricalPrice) / formattedHistoricalPrice * 100;
+                const priceAlert = priceChange.toFixed(2);
+                const priceAlertClass = priceChange < 0 ? 'negative' : 'positive';
+                const displayPriceAlert = priceChange < 0 ? `${priceAlert}%` : `+${priceAlert}%`;
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <img src="${tokenImages[index]}" alt="${tokenSymbols[index]} logo" style="width: 20px; height: 20px; margin-right: 5px;">
+                        ${tokenSymbols[index]}
+                    </td>
+                    <td>${formattedPrice}</td>
+                    <td>${formattedHistoricalPrice}</td>
+                    <td><span class="${priceAlertClass}">${displayPriceAlert}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+
+        // Attach the updateTable function to the button click event
+        document.getElementById('updateButton').addEventListener('click', updateTable);
+
+    </script>
+
+</body>
+</html>
