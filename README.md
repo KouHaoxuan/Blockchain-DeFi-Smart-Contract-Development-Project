@@ -31,6 +31,10 @@ The front-end interface is built using HTML, CSS, and JavaScript. It includes a 
 
 ### Automated Vulnerability Detection
 
+To run the Vulnerability Detection Tool, you need to install these packages:
+1.slither-analyzer
+2.solc
+3.solc-select
 The automated vulnerability detection tool uses the Slither package to conduct a comprehensive security assessment of the Solidity smart contracts. The tool identifies potential vulnerabilities, such as integer overflow/underflow, reentrancy attacks, uninitialized storage pointers, default function visibility, unauthorized access control, unprotected `selfdestruct` calls, and arithmetic precision errors. The detection results are displayed through a dedicated web interface, providing detailed descriptions, severity ratings, and suggested remediation measures.
 
 ## Project Outcomes
