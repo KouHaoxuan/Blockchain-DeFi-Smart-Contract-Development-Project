@@ -40,7 +40,7 @@ The project successfully achieved its objectives, including real-time cryptocurr
 ![real-time cryptocurrency price website](Website.png)
 website
 
-![Smart Contract Vulnerability Detection Tool]DetectionTool.png)
+![Smart Contract Vulnerability Detection Tool](DetectionTool.png)
 Vulnerability Detection Tool
 
 ## Future Improvements
